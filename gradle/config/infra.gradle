@@ -1,0 +1,9 @@
+task infraUp(type: Exec) {
+    commandLine 'sh', '-c', "$rootProject.projectDir/scripts/integration-test.sh infra up"
+    setIgnoreExitValue(true)
+}
+
+task infraDown(type: Exec) {
+    commandLine 'sh', '-c', "$rootProject.projectDir/scripts/integration-test.sh infra down"
+    setIgnoreExitValue(true)
+}

@@ -1,0 +1,132 @@
+test {
+    maxParallelForks = 1
+    failFast true
+    useJUnitPlatform {
+        includeEngines 'junit-jupiter', 'junit-vintage'
+    }
+}
+
+project.test {
+    def outputCache = new LinkedList<String>()
+
+    beforeTest { TestDescriptor td -> outputCache.clear() }    // clear everything right before the test starts
+
+    onOutput { TestDescriptor td, TestOutputEvent toe ->       // when output is coming put it in the cache
+        outputCache.add(toe.getMessage())
+        while (outputCache.size() > 1000) outputCache.remove() // if we have more than 1000 lines -> drop first
+    }
+
+    afterTest { TestDescriptor td, TestResult tr ->
+        if (tr.resultType == TestResult.ResultType.FAILURE && outputCache.size() > 0) {
+            println()
+            println(" Output of ${td.className}.${td.name}:")
+            outputCache.each { print(" > $it") }
+        }
+    }
+}
+
+tasks.withType(Test) {
+    reports.html.enabled = false
+    testLogging {
+        events 'passed', 'failed'
+        exceptionFormat = 'full'
+        afterSuite { desc, result ->
+            if (!desc.parent)
+                println """Results: ${result.resultType} (${result.testCount} tests, ${
+                    result.successfulTestCount
+                } successes, ${result.failedTestCount} failures, ${result.skippedTestCount} skipped)"""
+        }
+    }
+}
+
+tasks.withType(Test) {
+    jacoco {
+        enabled = true
+        destinationFile = file("${project.buildDir}/jacoco/test.exec")
+    }
+    jacocoTestReport {
+        executionData fileTree(project.buildDir).include("/jacoco/test.exec")
+        reports {
+            xml.enabled true
+            xml.destination file("${buildDir}/jacoco/jacoco.xml")
+            csv.enabled false
+            html.enabled true
+            html.destination file("${buildDir}/jacoco")
+        }
+    }
+}
+
+task unitTest(type: Test) {}
+
+task integrationContractTest(type: Test) {}
+
+task integrationTest(type: Test) {}
+
+task contractTest(type: Test) {}
+
+task stubTest(type: Test) {}
+
+task functionalTest(type: Test) {}
+
+project.afterEvaluate {
+    // TEST: all tests except stub and functional tests
+    configure("test", [], ['io.craftbase.CategoryST', 'io.craftbase.CategoryFT'], [], ['stubTest', 'functionalTest'])
+
+    // UNIT TEST: Only unit tests
+    configure("unitTest", [], ['io.craftbase.CategoryIT', 'io.craftbase.CategoryCT', 'io.craftbase.CategoryST', 'io.craftbase.CategoryFT'], [], ['integrationTest', 'contractTest', 'stubTest', 'functionalTest'])
+
+    // INTEGRATION AND CONTRACT TEST: Only integration and contract tests
+    configure("integrationContractTest", ['io.craftbase.CategoryIT', 'io.craftbase.CategoryCT'], [], ['integrationTest', 'contractTest'], [])
+
+    // INTEGRATION TEST: Only integration tests
+    configure("integrationTest", ['io.craftbase.CategoryIT'], [], ['integrationTest'], [])
+
+    // CONTRACT TEST: Only contract tests
+    configure("contractTest", ['io.craftbase.CategoryCT'], [], ['contractTest'], [])
+
+    // STUB TEST: Only stub tests
+    configure("stubTest", ['io.craftbase.CategoryST'], [], ['stubTest'], [])
+
+    // STUB TEST: Only stub tests
+    configure("functionalTest", ['io.craftbase.CategoryFT'], [], ['functionalTest'], [])
+}
+
+def configure(taskName, includeJunit4Categories, excludeJunit4Categories, includeJunit5Tags, excludeJunit5Tags) {
+    if (project.ext.type == 'groovy') {
+        tasks.named(taskName).configure {
+            useJUnit {
+                includeCategories includeJunit4Categories as String[]
+                excludeCategories excludeJunit4Categories as String[]
+            }
+        }
+    } else if (project.ext.type == 'java') {
+        tasks.named(taskName).configure {
+            useJUnitPlatform {
+                includeTags includeJunit5Tags as String[]
+                excludeTags excludeJunit5Tags as String[]
+            }
+        }
+    }
+}
+
+if (!project.hasProperty('runningOnCI')) {
+    def infraUp = rootProject.getTasksByName("infraUp", false)[0]
+    def infraDown = rootProject.getTasksByName("infraDown", false)[0]
+
+    ['test', 'integrationTest', 'integrationContractTest', 'contractTest', 'stubTest', 'functionalTest'].each { task ->
+        project."$task".dependsOn infraUp
+        infraDown.mustRunAfter project."$task"
+        project."$task".finalizedBy infraDown
+    }
+}
+
+if (project.tasks.findByName('generateContractTests')) {
+    integrationTest.dependsOn generateContractTests
+    contractTest.dependsOn generateContractTests
+}
+
+if (project.tasks.findByName('verifierStubsJar')) {
+    stubTest.dependsOn verifierStubsJar
+}
+
+

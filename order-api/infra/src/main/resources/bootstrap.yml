@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: onboarding-api
+  main:
+    allow-bean-definition-overriding: true
+
+---
+spring:
+  profiles: local
+  cloud:
+    config:
+      uri: http://localhost:8888
+
+---
+spring:
+  profiles: stg
+  cloud:
+    config:
+      uri: http://config-server.craftbase-platform.svc.cluster.local
+
+---
+spring:
+  profiles: prod
+  cloud:
+    config:
+      uri: http://config-server.craftbase-platform.svc.cluster.local

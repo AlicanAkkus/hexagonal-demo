@@ -1,0 +1,5 @@
+rootProject.name = 'hexagonal-demo'
+
+include ':order-api'
+include ':order-api:domain'
+include ':order-api:infra'

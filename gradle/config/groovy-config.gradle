@@ -1,0 +1,24 @@
+apply plugin: 'groovy'
+
+project.ext.type = 'groovy'
+
+idea {
+    module {
+        inheritOutputDirs = false
+        outputDir = compileGroovy.destinationDir
+        testOutputDir = compileTestGroovy.destinationDir
+        downloadJavadoc = false
+        downloadSources = true
+    }
+}
+
+dependencies {
+    compile group: 'org.codehaus.groovy', name: 'groovy-all'
+
+    testCompile group: 'org.objenesis', name: 'objenesis'
+    testCompile group: 'net.bytebuddy', name: 'byte-buddy'
+    testCompile group: 'org.spockframework', name: 'spock-core'
+    testCompile group: 'org.spockframework', name: 'spock-spring'
+    testCompile group: 'org.springframework', name: 'spring-test'
+    testRuntimeOnly group: 'org.junit.vintage', name: 'junit-vintage-engine'
+}

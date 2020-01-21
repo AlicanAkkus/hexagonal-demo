@@ -1,0 +1,32 @@
+name: Run Sonar Analysis Regularly
+
+on:
+  repository_dispatch:
+    types: run-sonar-analysis
+  schedule:
+    - cron:  '0 8,12,16 * * *'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+
+      - name: Set up JDK 11
+        uses: actions/setup-java@v1
+        with:
+          java-version: 11
+
+      - name: Cache gradle dependencies
+        uses: actions/cache@v1
+        with:
+          path: .gradle
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/dependencies.gradle') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+
+      - name: Build
+        run: ./gradlew jacocoTestReport sonarqube -Dsonar.organization=craftbaseio -Dsonar.projectKey=craftbaseio -Dsonar.host.url=https://sonarcloud.io -Dsonar.login=9c228c4da2fc38e2b7581806d6dac2bc76269f4c

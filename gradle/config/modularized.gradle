@@ -1,0 +1,245 @@
+import java.util.regex.Pattern
+
+println "[DEBUG] Tasks to execute: ${gradle.startParameter.taskNames}"
+
+keepTasksOfChangeModules()
+organizeInfraTasks()
+removeTasksOfMissingModules()
+printTaskStatus()
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// REMOVE TASKS OF MISSING MODULES
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def removeTasksOfMissingModules() {
+    gradle.getTaskGraph().whenReady { graph ->
+        def allTasks = graph.allTasks
+        allTasks.findAll { it.enabled }.each {
+            def nameTokens = it.project.displayName.tokenize(":")
+            if (nameTokens.size() >= 2) {
+                def folderName = nameTokens[1].replaceAll("'", "").trim()
+                def folder = new File("${project.projectDir}/${folderName}")
+                if (!(folder.exists() && folder.isDirectory())) {
+                    it.enabled = false
+                    println "[DEBUG] $folder does not exist, $it.project.displayName of '$it.name' task disabled"
+                }
+            }
+        }
+    }
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// REMOVE IRRELEVANT TASKS
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def keepTasksOfChangeModules() {
+    if (shouldSkipModuleDetection()) return
+
+    def changedModules = detectChangedFolders()
+    gradle.getTaskGraph().whenReady { graph ->
+        def allTasks = graph.allTasks
+
+        // find tasks of changed modules
+        def detectedTasks = allTasks.findAll { Task task ->
+            changedModules.findAll { module ->
+                task.path.contains(module)
+            }
+        }
+
+        // if running at CI, infra tasks should be disabled
+        if (PROPS_FOR_SKIPPING_INFRA_TASKS.tokenize(',').any { project.hasProperty("$it") }) {
+            detectedTasks = detectedTasks.findAll { Task task ->
+                !task.path.contains(PREFIX_FOR_INFRA_TASKS)
+            }
+        }
+
+        println "[DEBUG] ${allTasks.size()} tasks exist overall the project"
+
+        // no need to run stub tests at detected modules
+        detectedTasks = detectedTasks.findAll {
+            it.name != "$TASK_OF_STUB_VERIFIER_TEST"
+        }
+
+        // disable all but tasks of changed modules
+        if (detectedTasks.size() > 0) {
+            def tasksToDisable = allTasks - detectedTasks
+            println "[DEBUG] Changed modules having $detectedTasks.size tasks detected and ${tasksToDisable.size()} tasks will be disabled"
+            tasksToDisable.each {
+                it.enabled = false
+            }
+        } else {
+            println "[DEBUG] No modules changed, so no tasks will be executed"
+            allTasks.each { Task task ->
+                task.enabled = false
+            }
+        }
+    }
+}
+
+def organizeInfraTasks() {
+    if (PROPS_FOR_SKIPPING_INFRA_TASKS.tokenize(',').any { project.hasProperty(it) }) return
+
+    gradle.getTaskGraph().whenReady { graph ->
+        def numberOfTasksEnabled = graph.allTasks.findAll { it.enabled }.size()
+        if (numberOfTasksEnabled == 0) return
+
+        Pattern tasksRequiringInfraTasksPattern = ~"^$TASKS_DEPENDENT_TO_INFRA_TASKS\$"
+
+        def intTestTasks = graph.allTasks.findAll {
+            tasksRequiringInfraTasksPattern.matcher(it.name).size()
+        }.flatten()
+
+        def nonInfraTasks = graph.allTasks.findAll { !(it.name.contains("$PREFIX_FOR_INFRA_TASKS")) }
+        def itDownTasks = graph.allTasks.findAll { it.name == "$TASK_OF_INFRA_DOWN" }
+        def itUpTasks = graph.allTasks.findAll { it.name == "$TASK_OF_INFRA_UP" }
+        if (intTestTasks?.size() == 0) return
+
+        if (itUpTasks?.size() > 0) {
+            def firstItUpTask = itUpTasks.first()
+            firstItUpTask.enabled = true
+            itUpTasks?.remove(firstItUpTask)
+            itUpTasks?.each { it.enabled = false }
+
+            nonInfraTasks.each {
+                it.mustRunAfter(firstItUpTask)
+            }
+            intTestTasks.each {
+                it.mustRunAfter(firstItUpTask)
+            }
+        }
+        if (itDownTasks?.size() > 0) {
+            def lastItDownTask = itDownTasks.last()
+            lastItDownTask.enabled = true
+            itDownTasks?.remove(lastItDownTask)
+            itDownTasks?.each { it.enabled = false }
+
+            nonInfraTasks.each {
+                lastItDownTask.mustRunAfter(it)
+                lastItDownTask.dependsOn(it)
+                it.finalizedBy(lastItDownTask)
+            }
+            intTestTasks.each {
+                lastItDownTask.mustRunAfter(it)
+                lastItDownTask.dependsOn(it)
+                it.finalizedBy(lastItDownTask)
+            }
+        }
+    }
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// PRINT ENABLED TASKS
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def printTaskStatus() {
+    gradle.getTaskGraph().whenReady { graph ->
+        def numberOfTasksEnabled = graph.allTasks.findAll { it.enabled }.size()
+        if (numberOfTasksEnabled == 0) return
+        println "\n[DEBUG] ======= TASKS =======\n"
+        graph.allTasks.each {
+            if (it.enabled)
+                println "[ENABLED TASK] $it.path"
+        }
+        println "\n[DEBUG] =====================\n"
+    }
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// SKIP MODULE SELECTION
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def shouldSkipModuleDetection() {
+    if (PROPS_FOR_SKIPPING_CHANGED_MODULE_DETECTION.tokenize(',').any { project.hasProperty("$it") }) return true
+    if (TASKS_FOR_SKIPPING_CHANGED_MODULE_DETECTION.tokenize(',').any { hasTaskTriggered("$it") }) return true
+
+    // StubTest has all or nothing approach
+    if (hasTaskTriggered("$TASK_OF_STUB_VERIFIER_TEST")) {
+        return changeSetContainsContracts()
+    }
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// RUN ALL OR NOTHING FOR CONTRACT TESTS
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def changeSetContainsContracts() {
+    def outputCommitted = executeBashCommand(GIT_COMMITTED_CHANGESET)
+    def outputUncommitted = executeBashCommand(GIT_UNCOMMITTED_CHANGESET)
+    def output = outputCommitted + outputUncommitted
+    return output.findAll { it.toLowerCase().contains("$COMMON_TEXT_IN_FILE_NAMES_OF_CONTRACT_TESTS") }.size() > 0
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// CHANGESET DETECTING
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def detectCommittedChanges() {
+    def output = executeBashCommand(GIT_COMMITTED_CHANGESET)
+    return output.collect {
+        def folder = it.trim().split(" ")[1]
+        String module = folder.replaceAll("/", ":").substring(0, folder.indexOf("/src") > 0 ? folder.indexOf("/src") : folder.length())
+        ":" + module.substring(0, module.indexOf(":") > 0 ? module.indexOf(":") : module.length())
+    } as Set
+}
+
+def detectUncommittedChanges() {
+    def output = executeBashCommand(GIT_UNCOMMITTED_CHANGESET)
+    return output.collect { statusLine ->
+        def path = statusLine.trim().split("[ ]+")[1]
+        ":" + path.split("/")[0]
+    } as Set
+}
+
+
+def detectCommonModuleChangesMap() {
+    List depsList = COMMON_MODULE_NAMES.tokenize(',')
+            .collect { moduleDependencyGraph -> moduleDependencyGraph.tokenize('>') }
+
+    Map depsMap = [:]
+    depsList.each { moduleDependencyGraph ->
+        depsMap.put(":${moduleDependencyGraph[0]}".toString(), moduleDependencyGraph[1].tokenize(';'))
+    }
+    return depsMap
+}
+
+def detectChangedFolders() {
+    def committedChangedModules = detectCommittedChanges()
+    def uncommittedChangedModules = detectUncommittedChanges()
+    def commonChangedModulesMap = detectCommonModuleChangesMap()
+
+    committedChangedModules.addAll(uncommittedChangedModules)
+
+    List dependentModules = []
+    committedChangedModules.each {
+        def deps = commonChangedModulesMap.get("$it".toString())
+        if (deps) {
+            if (deps instanceof List) dependentModules.addAll(deps)
+            else dependentModules.add(deps)
+        }
+    }
+    committedChangedModules.addAll(dependentModules)
+    committedChangedModules
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// TASK TRIGGERED?
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def hasTaskTriggered(String _taskName) {
+    return gradle.startParameter.taskNames.findAll {
+        String taskName -> taskName.toLowerCase().contains(_taskName.toLowerCase())
+    }.size() > 0
+}
+
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+// EXECUTE GIT COMMAND
+//~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+def executeBashCommand(command) {
+    def proc = "$command".execute()
+    def lines = proc.in.readLines()
+    proc.err.eachLine { line -> println line }
+    proc.waitFor()
+    lines
+}
+

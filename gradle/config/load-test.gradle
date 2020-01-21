@@ -1,0 +1,16 @@
+task loadTest(type: JavaExec) {
+    description = 'Run gatling tests'
+
+    doFirst {
+        new File("${buildDir}/reports/gatling").mkdirs()
+    }
+
+    systemProperties System.getProperties()
+
+    classpath = sourceSets.test.runtimeClasspath + configurations.testCompile + configurations.compile
+
+    main = "io.gatling.app.Gatling"
+    args = ['-s', 'GraphQLLoadSimulation',
+            '-rf', "${buildDir}/reports/gatling"
+    ]
+}

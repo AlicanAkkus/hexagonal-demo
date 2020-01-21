@@ -1,0 +1,20 @@
+buildscript {
+    apply from: "$rootProject.projectDir/gradle/config/repositories.gradle", to: buildscript
+    apply from: "$rootProject.projectDir/gradle/config/dependencies-plugins.gradle", to: buildscript
+}
+
+group = 'io.craftbase'
+apply from: "$rootProject.projectDir/gradle/config/version-checker.gradle"
+apply from: "$rootProject.projectDir/gradle/config/infra.gradle"
+
+allprojects {
+    apply from: "$rootProject.projectDir/gradle/config/repositories.gradle"
+    apply from: "$rootProject.projectDir/gradle/config/java-config.gradle"
+    apply from: "$rootProject.projectDir/gradle/config/idea.gradle"
+    apply from: "$rootProject.projectDir/gradle/config/dependencies.gradle"
+    apply from: "$rootProject.projectDir/gradle/config/jacoco.gradle"
+    apply from: "$rootProject.projectDir/gradle/config/testing.gradle"
+}
+
+apply from: "$rootProject.projectDir/gradle/config/sonarqube.gradle"
+apply from: "$rootProject.projectDir/gradle/config/modularized.gradle"

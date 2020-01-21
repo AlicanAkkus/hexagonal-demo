@@ -1,0 +1,17 @@
+def version = [
+        sonarqube           : '2.8',
+        dependencyManagement: '1.0.6.RELEASE',
+        versions            : '0.20.0',
+        springBoot          : '2.1.0.RELEASE',
+        springCloudContract : '2.1.2.RELEASE'
+]
+
+dependencies {
+    //classpath group: 'com.github.gabrie-allaigre', name: 'sonar-gitlab-plugin', version: '4.1.0-SNAPSHOT'
+    classpath group: 'org.sonarsource.scanner.gradle', name: 'sonarqube-gradle-plugin', version: version.sonarqube
+
+    classpath group: 'io.spring.gradle', name: 'dependency-management-plugin', version: version.dependencyManagement
+    classpath group: 'com.github.ben-manes', name: 'gradle-versions-plugin', version: version.versions
+    classpath group: 'org.springframework.boot', name: 'spring-boot-gradle-plugin', version: version.springBoot
+    classpath group: 'org.springframework.cloud', name: 'spring-cloud-contract-gradle-plugin', version: version.springCloudContract
+}

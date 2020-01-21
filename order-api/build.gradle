@@ -1,0 +1,18 @@
+description = 'Order API'
+jar.baseName = 'order-api'
+
+apply plugin: 'org.springframework.boot'
+
+dependencies {
+    compile project('infra')
+}
+
+springBoot {
+    mainClassName = 'io.craftbase.orderapi.OrderApiApplication'
+}
+
+bootRun {
+    if (project.hasProperty('args')) {
+        args project.args.split(',')
+    }
+}

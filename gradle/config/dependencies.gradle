@@ -1,0 +1,200 @@
+apply plugin: 'io.spring.dependency-management'
+
+ext {
+
+    // ============ DEPENDENCIES ============
+
+    version_slf4j = '1.7.25'
+    version_logback = '1.2.3'
+    version_junit5 = '5.3.1'
+    version_junit5_suite = '1.2.0'
+    version_assertJ = '3.10.0'
+    version_mockito = '2.21.0'
+    version_spock = '1.2-groovy-2.5'
+    version_jacocoTool = '0.8.5'
+    version_xmlUnit = '2.6.0'
+
+    // ============ DEPENDENCY MANAGEMENT ============
+
+    version_spring = '5.1.4.RELEASE'
+    version_springBoot = '2.1.2.RELEASE'
+    version_springCloud = '2.1.0.RELEASE'
+    version_springCloudDependencies = 'Greenwich.RELEASE'
+    version_springCloudStreamDependencies = 'Fishtown.RELEASE'
+    version_springRetry = '1.2.3.RELEASE'
+
+    version_projectreactor = '3.2.2.RELEASE'
+    version_junit4 = '4.12'
+    version_groovy = '2.5.5'
+    version_commonsCodec = '1.11'
+    version_commonsLang3 = '3.7'
+    version_byteBuddy = '1.8.14'
+    version_objenesis = '2.6'
+    version_libPhoneNumber = '8.9.12'
+    version_iban4j = '3.2.1'
+    version_swagger = '2.7.0'
+    version_jaxb = '2.3.0'
+    version_jaxbImpl = '2.3.0.1'
+    version_jaxbCore = '2.3.0.1'
+    version_activation = '1.1.1'
+    version_lombok = '1.18.4'
+    version_cucumber = '4.7.1'
+    version_httpBuilder = '0.7.1'
+    version_httpBuilderCore = '1.0.3'
+    version_javaxValidation = '2.0.1.Final'
+    version_twilioSdk = '7.30.0'
+    version_jacksonDataFormatXml = '2.9.4'
+    version_hikari = '3.2.0'
+    version_hibernate_spatial = '5.3.7.Final'
+    version_jackson_datatype_jts = '2.4'
+    version_google_maps_services = '0.9.1'
+    version_apache_commons_math_version = '3.2'
+    version_wiremock = '2.19.0'
+    version_json_patch = '1.9'
+    version_javax_el = '3.0.0'
+    version_javax_validation = '2.0.1.Final'
+    version_google_cloud_storage = '1.55.0'
+    version_groovy_wslite = '1.1.3'
+    version_jackson_annotations = '2.9.8'
+    version_commons_codec = '1.13'
+    version_httpComponents = '4.5.6'
+    version_orgjsoup = '1.12.1'
+    version_jsr305 = '2.0.3'
+    version_reflection = '0.9.11'
+    version_orgosgl = '1.18.3'
+    version_shedlock = '2.4.0'
+    version_hibernateTypes52 = '2.4.4'
+    version_sendgrid = '4.4.1'
+    version_flyway = '5.2.4'
+    version_commons_io = '2.6'
+    version_typesafe = '1.3.3'
+    version_mysql = '8.0.18'
+    version_jdom = '2.0.6'
+    version_common_text = '1.8'
+    version_jsch = '0.1.55'
+    version_thymeleafExtras = '3.0.4.RELEASE'
+    version_thymeleafLayoutDialect = '2.4.1'
+    version_commons_vfs2 = '2.6.0'
+    version_jsoup = '1.12.1'
+    version_commonsCodec = '1.13'
+    version_commonsIo = '2.6'
+}
+
+
+// Compatibility issue with Spring gradle plugin: https://github.com/spring-projects/spring-boot/issues/13444
+ext['groovy.version'] = rootProject.version_groovy
+
+dependencies {
+    compile group: 'org.slf4j', name: 'jcl-over-slf4j', version: rootProject.version_slf4j
+    compile group: 'org.slf4j', name: 'log4j-over-slf4j', version: rootProject.version_slf4j
+    compile group: 'org.slf4j', name: 'slf4j-api', version: rootProject.version_slf4j
+    compile group: 'ch.qos.logback', name: 'logback-classic', version: rootProject.version_logback
+    compile group: 'org.apache.commons', name: 'commons-lang3', version: rootProject.version_commonsLang3
+    compile group: 'org.reflections', name: 'reflections', version: rootProject.version_reflection
+    compile group: 'org.iban4j', name: 'iban4j', version: rootProject.version_iban4j
+    compile group: 'org.apache.commons', name: 'commons-text', version: rootProject.version_common_text
+
+    testImplementation group: 'org.junit.jupiter', name: 'junit-jupiter-api', version: rootProject.version_junit5
+    testRuntimeOnly group: 'org.junit.jupiter', name: 'junit-jupiter-engine', version: rootProject.version_junit5
+    testCompile group: 'org.junit.platform', name: 'junit-platform-suite-api', version: rootProject.version_junit5_suite
+    testCompile group: 'org.xmlunit', name: 'xmlunit-core', version: rootProject.version_xmlUnit
+    testCompile group: 'org.xmlunit', name: 'xmlunit-matchers', version: rootProject.version_xmlUnit
+    testCompile group: 'org.assertj', name: 'assertj-core', version: rootProject.version_assertJ
+    testCompile group: 'org.mockito', name: 'mockito-core', version: rootProject.version_mockito
+    testCompile group: 'org.mockito', name: 'mockito-junit-jupiter', version: rootProject.version_mockito
+}
+
+dependencyManagement {
+    dependencies {
+        dependency group: 'org.projectlombok', name: 'lombok', version: rootProject.version_lombok
+        dependency group: 'org.iban4j', name: 'iban4j', version: rootProject.version_iban4j
+        dependency group: 'io.projectreactor', name: 'reactor-core', version: rootProject.version_projectreactor
+        dependency group: 'io.projectreactor', name: 'reactor-test', version: rootProject.version_projectreactor
+        dependency group: 'io.projectreactor.addons', name: 'reactor-extra', version: rootProject.version_projectreactor
+        dependency group: 'com.googlecode.libphonenumber', name: 'libphonenumber', version: rootProject.version_libPhoneNumber
+        dependency(group: 'org.codehaus.groovy', name: 'groovy-all', version: rootProject.version_groovy) {
+            exclude(group: 'org.codehaus.groovy', name: 'groovy-test-junit5')
+        }
+        dependency group: 'org.apache.commons', name: 'commons-lang3', version: rootProject.version_commonsLang3
+        dependency group: 'commons-codec', name: 'commons-codec', version: rootProject.version_commonsCodec
+        dependency group: 'org.springframework', name: 'spring-web', version: rootProject.version_spring
+        dependency group: 'org.springframework', name: 'spring-test', version: rootProject.version_spring
+        dependency group: 'org.springframework', name: 'spring-aspects', version: rootProject.version_spring
+        dependency group: 'org.springframework.boot', name: 'spring-boot-starter-validation', version: rootProject.version_springBoot
+        dependency group: 'org.springframework.boot', name: 'spring-boot-starter-thymeleaf', version: rootProject.version_springBoot
+        dependency group: 'org.springframework.cloud', name: 'spring-cloud-starter-sleuth', version: rootProject.version_springCloud
+        dependency group: 'org.springframework.cloud', name: 'spring-cloud-starter-zipkin', version: rootProject.version_springCloud
+        dependency group: 'org.springframework.cloud', name: 'spring-cloud-stream-reactive', version: rootProject.version_springCloud
+        dependency group: 'org.springframework.cloud', name: 'spring-cloud-starter-stream-kafka', version: rootProject.version_springCloud
+        dependency group: 'org.springframework.retry', name: 'spring-retry', version: rootProject.version_springRetry
+        dependency group: 'org.spockframework', name: 'spock-spring', version: rootProject.version_spock
+        dependency group: 'org.spockframework', name: 'spock-core', version: rootProject.version_spock
+        dependency group: 'junit', name: 'junit', version: rootProject.version_junit4
+        dependency group: 'net.bytebuddy', name: 'byte-buddy', version: rootProject.version_byteBuddy
+        dependency group: 'org.objenesis', name: 'objenesis', version: rootProject.version_objenesis
+        dependency group: 'javax.xml.bind', name: 'jaxb-api', version: rootProject.version_jaxb
+        dependency group: 'com.sun.xml.bind', name: 'jaxb-impl', version: rootProject.version_jaxbImpl
+        dependency group: 'com.sun.xml.bind', name: 'jaxb-core', version: rootProject.version_jaxbCore
+        dependency group: 'javax.activation', name: 'activation', version: rootProject.version_activation
+        dependency group: 'javax.validation', name: 'validation-api', version: rootProject.version_javaxValidation
+
+        dependency group: 'io.cucumber', name: 'cucumber-junit', version: rootProject.version_cucumber
+        dependency group: 'io.cucumber', name: 'cucumber-groovy', version: rootProject.version_cucumber
+        dependency group: 'io.cucumber', name: 'cucumber-java', version: rootProject.version_cucumber
+        dependency group: 'io.cucumber', name: 'cucumber-java8', version: rootProject.version_cucumber
+        dependency group: 'io.cucumber', name: 'cucumber-spring', version: rootProject.version_cucumber
+
+        dependency group: 'org.apache.httpcomponents', name: 'httpclient', version: rootProject.version_httpComponents
+        dependency group: 'org.codehaus.groovy.modules.http-builder', name: 'http-builder', version: rootProject.version_httpBuilder
+        dependency group: 'io.github.http-builder-ng', name: 'http-builder-ng-apache', version: rootProject.version_httpBuilderCore
+        dependency group: 'io.github.http-builder-ng', name: 'http-builder-ng-core', version: rootProject.version_httpBuilderCore
+        dependency group: 'com.twilio.sdk', name: 'twilio', version: rootProject.version_twilioSdk
+        dependency group: 'com.fasterxml.jackson.dataformat', name: 'jackson-dataformat-xml', version: rootProject.version_jacksonDataFormatXml
+        dependency group: 'com.zaxxer', name: 'HikariCP', version: rootProject.version_hikari
+        dependency group: 'org.hibernate', name: 'hibernate-spatial', version: rootProject.version_hibernate_spatial
+        dependency group: 'com.bedatadriven', name: 'jackson-datatype-jts', version: rootProject.version_jackson_datatype_jts
+        dependency group: 'com.google.maps', name: 'google-maps-services', version: rootProject.version_google_maps_services
+        dependency group: 'org.apache.commons', name: 'commons-math3', version: rootProject.version_apache_commons_math_version
+        dependency group: 'com.github.tomakehurst', name: 'wiremock-standalone', version: rootProject.version_wiremock
+        dependency group: 'com.github.fge', name: 'json-patch', version: rootProject.version_json_patch
+        dependency group: 'org.glassfish', name: 'javax.el', version: rootProject.version_javax_el
+        dependency group: 'javax.validation', name: 'validation-api', version: rootProject.version_javax_validation
+        dependency group: 'com.google.cloud', name: 'google-cloud-storage', version: rootProject.version_google_cloud_storage
+        dependency group: 'com.github.groovy-wslite', name: 'groovy-wslite', version: rootProject.version_groovy_wslite
+        dependency group: 'org.junit.vintage', name: 'junit-vintage-engine', version: rootProject.version_junit5
+        dependency group: 'com.fasterxml.jackson.core', name: 'jackson-annotations', version: rootProject.version_jackson_annotations
+        dependency group: 'com.fasterxml.jackson.core', name: 'jackson-databind', version: rootProject.version_jackson_annotations
+        dependency group: 'commons-codec', name: 'commons-codec', version: rootProject.version_commons_codec
+        dependency group: 'org.jsoup', name: 'jsoup', version: rootProject.version_orgjsoup
+        dependency group: 'org.osgl', name: 'osgl-tool', version: rootProject.version_orgosgl
+        dependency group: 'net.javacrumbs.shedlock', name: 'shedlock-spring', version: rootProject.version_shedlock
+        dependency group: 'net.javacrumbs.shedlock', name: 'shedlock-provider-redis-spring', version: rootProject.version_shedlock
+        dependency group: 'com.vladmihalcea', name: 'hibernate-types-52', version: rootProject.version_hibernateTypes52
+        dependency group: 'com.sendgrid', name: 'sendgrid-java', version: rootProject.version_sendgrid
+        dependency group: 'org.flywaydb', name: 'flyway-core', version: rootProject.version_flyway
+        dependency group: 'commons-io', name: 'commons-io', version: rootProject.version_commons_io
+        dependency group: 'com.typesafe', name: 'config', version: rootProject.version_typesafe
+        dependency group: 'org.junit.jupiter', name: 'junit-jupiter-params', version: rootProject.version_junit5
+        dependency group: 'mysql', name: 'mysql-connector-java', version: rootProject.version_mysql
+        dependency group: 'org.jdom', name: 'jdom2', version: rootProject.version_jdom
+        dependency group: 'com.jcraft', name: 'jsch', version: rootProject.version_jsch
+        dependency group: 'org.jsoup', name: 'jsoup', version: rootProject.version_jsoup
+        dependency group: 'commons-io', name: 'commons-io', version: rootProject.version_commonsIo
+        dependency group: 'commons-codec', name: 'commons-codec', version: rootProject.version_commonsCodec
+        dependency group: 'org.thymeleaf.extras', name: 'thymeleaf-extras-springsecurity5', version: rootProject.version_thymeleafExtras
+        dependency group: 'nz.net.ultraq.thymeleaf', name: 'thymeleaf-layout-dialect', version: rootProject.version_thymeleafLayoutDialect
+        dependency group: 'org.apache.commons', name: 'commons-vfs2', version: rootProject.version_commons_vfs2
+
+        // @NotNull annotation gives compilation warning
+        // https://stackoverflow.com/questions/11104667/java-compilation-error-using-findbugs-com-sun-tools-javac-code-symbolcompletio
+        dependency group: 'com.google.code.findbugs', name: 'jsr305', version: rootProject.version_jsr305
+
+        imports {
+            mavenBom "org.springframework.boot:spring-boot-dependencies:${rootProject.version_springBoot}"
+            mavenBom "org.springframework.cloud:spring-cloud-gateway:${rootProject.version_springCloud}"
+            mavenBom "org.springframework.cloud:spring-cloud-stream-dependencies:${rootProject.version_springCloudStreamDependencies}"
+            mavenBom "org.springframework.cloud:spring-cloud-contract-dependencies:${rootProject.version_springCloud}"
+            mavenBom "org.springframework.cloud:spring-cloud-dependencies:${rootProject.version_springCloudDependencies}"
+        }
+    }
+}
