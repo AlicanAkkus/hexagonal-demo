@@ -21,7 +21,7 @@ import org.springframework.context.annotation.Profile;
 @ComponentScan(
         excludeFilters = {
                 @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*JpaRepository.*"),
-                @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*OnboardingApiApplication.*")
+                @ComponentScan.Filter(type = FilterType.REGEX, pattern = ".*OrderApiApplication.*")
         }
 )
 public class TestConfig {

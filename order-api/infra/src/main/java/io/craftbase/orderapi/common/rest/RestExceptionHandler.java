@@ -4,7 +4,6 @@ import io.craftbase.orderapi.common.exception.OrderApiBusinessException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.MessageSource;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -63,13 +62,6 @@ public class RestExceptionHandler extends BaseController {
     public Response handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException methodArgumentTypeMismatchException, Locale locale) {
         log.trace("MethodArgumentTypeMismatchException occurred", methodArgumentTypeMismatchException);
         return createErrorResponseFromMessageSource("common.client.typeMismatch", locale, methodArgumentTypeMismatchException.getName());
-    }
-
-    @ResponseStatus(HttpStatus.UNAUTHORIZED)
-    @ExceptionHandler(AccessDeniedException.class)
-    public Response handleAccessDeniedException(AccessDeniedException accessDeniedException, Locale locale) {
-        log.trace("AccessDeniedException occurred", accessDeniedException);
-        return createErrorResponseFromMessageSource("common.client.unauthorized", locale);
     }
 
     private Response createErrorResponseFromMessageSource(String key, Locale locale, String... args) {

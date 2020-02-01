@@ -10,8 +10,9 @@ import java.util.List;
 @Builder
 public class OrderCreate {
 
-    private BigDecimal price;
-    private String address;
     private String note;
+    private String address;
+    private BigDecimal price;
+    private String referenceCode;
     private List<OrderItem> orderItems;
 }

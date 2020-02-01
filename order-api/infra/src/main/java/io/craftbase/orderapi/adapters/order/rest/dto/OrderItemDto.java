@@ -1,4 +1,4 @@
-package io.craftbase.orderapi.order.rest.dto;
+package io.craftbase.orderapi.adapters.order.rest.dto;
 
 import io.craftbase.orderapi.order.model.OrderItem;
 import lombok.AllArgsConstructor;
