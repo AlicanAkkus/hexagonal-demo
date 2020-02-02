@@ -1,0 +1,44 @@
+import org.springframework.cloud.contract.verifier.config.TestFramework
+import org.springframework.cloud.contract.verifier.config.TestMode
+
+apply plugin: 'spring-cloud-contract'
+
+dependencies {
+    compile project.parent.project("domain")
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-web'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
+    compile group: 'org.springframework.boot', name: 'spring-boot-starter-data-jpa'
+    compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-sleuth'
+    compile group: 'org.springframework.cloud', name: 'spring-cloud-starter-zipkin'
+    compile group: 'io.micrometer', name: 'micrometer-registry-prometheus'
+    compile group: 'javax.xml.bind', name: 'jaxb-api'
+    compile group: 'com.sun.xml.bind', name: 'jaxb-impl'
+    compile group: 'com.sun.xml.bind', name: 'jaxb-core'
+    compile group: 'javax.activation', name: 'activation'
+    compile group: 'mysql', name: 'mysql-connector-java'
+    compile group: 'com.zaxxer', name: 'HikariCP'
+    compile group: 'commons-codec', name: 'commons-codec'
+
+    compileOnly("org.projectlombok:lombok")
+
+    annotationProcessor("org.projectlombok:lombok")
+    testAnnotationProcessor("org.projectlombok:lombok")
+    testCompileOnly("org.projectlombok:lombok")
+
+    testCompile group: 'org.springframework.boot', name: 'spring-boot-starter-test'
+    testCompile group: 'org.springframework.cloud', name: 'spring-cloud-starter-contract-verifier'
+    testCompile group: 'org.springframework.cloud', name: 'spring-cloud-contract-wiremock'
+    testCompile group: 'com.github.tomakehurst', name: 'wiremock-standalone'
+}
+
+contracts {
+    generatedTestSourcesDir = project.file("src/test/java/")
+    basePackageForTests = 'io.craftbase.paymentapi.contract'
+    nameSuffixForTests = 'ContractTest'
+    testFramework = TestFramework.JUNIT5
+    testMode = TestMode.EXPLICIT
+
+    baseClassMappings {
+        baseClassMapping("payment", "io.craftbase.paymentapi.contract.base.BasePaymentContractTest")
+    }
+}

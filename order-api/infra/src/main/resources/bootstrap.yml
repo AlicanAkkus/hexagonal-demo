@@ -3,7 +3,7 @@
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 spring:
   application:
-    name: hexagonal-demo
+    name: hexagonal-demo-order-api
   main:
     allow-bean-definition-overriding: true
   jpa:
@@ -14,7 +14,7 @@ spring:
     hibernate:
       ddl-auto: create
   datasource:
-    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/hexagonal?createDatabaseIfNotExist=true
+    url: jdbc:mysql://${DB_HOST:localhost}:${DB_PORT:3306}/hexagonal_order?createDatabaseIfNotExist=true
     username: root
     password: my-secret-pw
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -22,7 +22,7 @@ spring:
       minimum-idle: 5
       maximum-pool-size: 100
       idle-timeout: 30000
-      pool-name: hexagonal-demo
+      pool-name: hexagonal-demo-order-api
       max-lifetime: 2000000
       connection-timeout: 30000
     type: com.zaxxer.hikari.HikariDataSource
@@ -32,3 +32,11 @@ spring:
     throw-exception-if-no-handler-found: true
   resources:
     add-mappings: false
+server:
+  port: 8080
+
+payment-api:
+  baseUrl: http://localhost:8070
+
+restaurant-api:
+  baseUrl: http://localhost:8060

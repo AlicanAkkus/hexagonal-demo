@@ -1,0 +1,4 @@
+rootProject.name = 'restaurant-api'
+
+include ':domain'
+include ':infra'

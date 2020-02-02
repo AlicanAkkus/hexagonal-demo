@@ -19,6 +19,9 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class OrderCreateRequest {
 
+    @NotNull
+    private Long cardId;
+
     @NotEmpty
     private String note;
 
@@ -33,6 +36,7 @@ public class OrderCreateRequest {
 
     public OrderCreate toModel() {
         return OrderCreate.builder()
+                .cardId(cardId)
                 .note(note)
                 .price(price)
                 .address(address)

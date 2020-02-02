@@ -1,0 +1,18 @@
+description = 'Payment API'
+jar.baseName = 'payment-api'
+
+apply plugin: 'org.springframework.boot'
+
+dependencies {
+    compile project('infra')
+}
+
+springBoot {
+    mainClassName = 'io.craftbase.paymentapi.PaymentApiApplication'
+}
+
+bootRun {
+    if (project.hasProperty('args')) {
+        args project.args.split(',')
+    }
+}

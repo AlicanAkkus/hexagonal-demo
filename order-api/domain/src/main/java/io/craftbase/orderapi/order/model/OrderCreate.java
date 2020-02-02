@@ -10,6 +10,7 @@ import java.util.List;
 @Builder
 public class OrderCreate {
 
+    private Long cardId;
     private String note;
     private String address;
     private BigDecimal price;

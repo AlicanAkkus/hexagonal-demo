@@ -1,12 +1,6 @@
 package io.craftbase.orderapi.order;
 
-import io.craftbase.orderapi.order.model.Order;
-import io.craftbase.orderapi.order.model.OrderCreate;
-import io.craftbase.orderapi.order.model.OrderItem;
-import io.craftbase.orderapi.payment.PaymentFacade;
-import io.craftbase.orderapi.payment.model.Payment;
-import io.craftbase.orderapi.restaurant.RestaurantFacade;
-import io.craftbase.orderapi.restaurant.model.MenuItem;
+import io.craftbase.orderapi.order.model.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,8 +14,8 @@ import java.math.BigDecimal;
 public class OrderFacade {
 
     private final OrderRepository orderRepository;
-    private final RestaurantFacade restaurantFacade;
-    private final PaymentFacade paymentFacade;
+    private final RestaurantPort restaurantPort;
+    private final PaymentPort paymentPort;
 
     @Transactional
     public Order create(OrderCreate orderCreate) {
@@ -38,21 +32,21 @@ public class OrderFacade {
         BigDecimal orderPrice = orderCreate.getOrderItems().stream().map(OrderItem::getPrice).reduce(BigDecimal.ZERO, BigDecimal::add);
 
         if (!orderPrice.equals(orderCreate.getPrice())) {
-            throw new RuntimeException("order price not equal to sum of price");
+            throw new RuntimeException("order price is not equal to sum of the price");
         }
 
         orderCreate.getOrderItems().forEach(orderItem -> {
-            MenuItem menuItem = restaurantFacade.retrieveMenuItem(orderItem.getId());
+            MenuItem menuItem = restaurantPort.retrieveMenuItem(orderItem.getId());
 
             if (!menuItem.getPrice().equals(orderItem.getPrice())) {
-                throw new RuntimeException("menu item price not equal to item price");
+                throw new RuntimeException("menu item price is not equal to item price");
             }
         });
     }
 
     private void pay(OrderCreate orderCreate) {
-        Payment payment = paymentFacade.pay(orderCreate.getPrice(), orderCreate.getReferenceCode());
-        log.debug("Pay completed with reference code {} and price {}", payment.getReferenceCode(), payment.getPrice());
+        Payment payment = paymentPort.pay(orderCreate.getCardId(), orderCreate.getPrice(), orderCreate.getReferenceCode());
+        log.debug("Payment completed with reference code {} and price {}", payment.getReferenceCode(), payment.getPrice());
     }
 
     private Order save(OrderCreate orderCreate) {

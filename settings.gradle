@@ -3,3 +3,11 @@ rootProject.name = 'hexagonal-demo'
 include ':order-api'
 include ':order-api:domain'
 include ':order-api:infra'
+
+include ':payment-api'
+include ':payment-api:domain'
+include ':payment-api:infra'
+
+include ':restaurant-api'
+include ':restaurant-api:domain'
+include ':restaurant-api:infra'
