@@ -1,4 +1,0 @@
-rootProject.name = 'order-api'
-
-include ':domain'
-include ':infra'
